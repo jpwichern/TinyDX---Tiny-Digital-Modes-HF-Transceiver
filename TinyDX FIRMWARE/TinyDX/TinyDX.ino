@@ -1,20 +1,25 @@
 //*********************************************************************************************************
 //**********************  TinyDX  - QRPp DIGITAL MODES MULTIBAND HF TRANSCEIVER   *****************
 //********************************* Write up start: 06/01/2024 ********************************************
-// FIRMWARE VERSION: TinyDX_V1.4
+// FIRMWARE VERSION: TinyDX_V1.5PG8W
 // Barb(Barbaros ASUROGLU) - WB2CBA - 2025
+// Jiri Wichern - PG8W - 2026
 //*********************************************************************************************************
 // Required Libraries
 // ----------------------------------------------------------------------------------------------------------------------
 // Etherkit Si5351 (Needs to be installed via Library Manager to arduino ide) - SI5351 Library by Jason Mildrum (NT7S) - https://github.com/etherkit/Si5351Arduino
 //*****************************************************************************************************
-//* IMPORTANT NOTE: Use V2.1.3 of NT7S SI5351 Library. This is the only version compatible with TinyDX!!!*
+// IMPORTANT NOTE: Use V2.1.3 or above of NT7S SI5351 Library!
+// Fixes from V1.4:
+// - set_freq_manual needs a PLL frequency that's between 600 and 900 MHz and 4, 6 or 8 times the output frequency. This plays a role when selecting the 10 meters band.
+// - Also, after set_freq_manual, the PLL that's set needs a reset to make sure it tunes to the requested frequency.
+// - Removed some unused global variables.
 //*****************************************************************************************************
 
 //*************************************[ LICENCE and CREDITS ]*********************************************
 //  Initial FSK TX Signal Generation code by: Burkhard Kainka(DK7JD) - http://elektronik-labor.de/HF/SDRtxFSK2.html
 //  SI5351 Library by Jason Mildrum (NT7S) - https://github.com/etherkit/Si5351Arduino
-//  Improved FSK TX  signal generation code is from JE1RAV https://github.com/je1rav/QP-7C
+//  Improved FSK TX signal generation code is from JE1RAV https://github.com/je1rav/QP-7C
 //
 // License
 // -------
@@ -270,8 +275,10 @@ if (freqdiv < 11 || freqdiv > 30){
 
   if (freqdiv > 25 && freqdiv < 30){
     // Set CLK1 to output 112 MHz
+    unsigned long long pllfreq = freq4*100ULL*6; //6 * output frequency for 25 - 30 MHz means a PLL frequency between 600 and 720 MHz)
     si5351.set_ms_source(SI5351_CLK1, SI5351_PLLB);
-    si5351.set_freq_manual(freq4*100ULL, 70000000000ULL, SI5351_CLK1);
+    si5351.set_freq_manual(freq4*100ULL, pllfreq , SI5351_CLK1);
+    si5351.pll_reset(SI5351_PLLB);
     si5351.output_enable(SI5351_CLK1, 1);   //RX on
   }
   /*
