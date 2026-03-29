@@ -119,6 +119,11 @@ For WSJT-X, the configuration should be set to 'Rig: None' and 'PTT: VOX', with 
 
 for Android.
 
+6.1. Extended switch interface (PG8W)
+   ----------
+   
+To support all bands and more modes, an extended switch interface is implementend. It is accessed by simultaniously toggeling both the band and mode switch. If left alone for 5 seconds, the next switch toggle lets the TinyDX return operations as usual. See for more details the firmware file in the TinyDX FIRMWARE/TinyDX folder.
+
 7. Conclusion
    ----------
 
