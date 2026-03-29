@@ -43,21 +43,8 @@
 #include "Wire.h"
 #include <EEPROM.h>
 //*******************************[ VARIABLE DECLERATIONS ]*************************************
-uint32_t val;
-int addr;
-unsigned int Band = 0;
-//unsigned long freq; 
-unsigned long int freq1;
 unsigned long int freq = 14074000;
-unsigned long int freq4;
-unsigned long int freqdiv;
 int32_t cal_factor = 0;
-int TX_State = 0;
-int TX_inh;
-int TXSW_State;
-int index = 0;
-int B;
-int M;
 
 unsigned long F_FT8;
 unsigned long F_FT4;
@@ -144,7 +131,7 @@ void loop()
 Band_Select();
 
  //--------------------------- LIMIT OUT OF OPERATION BANDS TO ONLY RX -----------------
-freqdiv = freq / 1000000;
+unsigned int freqdiv = freq / 1000000;
 
 if (freqdiv < 11 || freqdiv > 30){
 
@@ -247,10 +234,8 @@ if (freqdiv < 11 || freqdiv > 30){
        
         
       if (FSKtx == 0){
-              
-        TX_State = 1;
         digitalWrite(RX,LOW);
-         digitalWrite(TXSW,HIGH);
+        digitalWrite(TXSW,HIGH);
         digitalWrite(TX,HIGH);
         
         delay(10);
@@ -269,34 +254,32 @@ if (freqdiv < 11 || freqdiv > 30){
   }
 
  RX1:
-   si5351.output_enable(SI5351_CLK0, 0);   //TX off
+  si5351.output_enable(SI5351_CLK0, 0);   //TX off
   digitalWrite(TX,0);
-   digitalWrite(TXSW,0);
+  digitalWrite(TXSW,0);
    
 
    
-       freq4 = freq * 4;
-freqdiv = freq / 1000000;
+  unsigned long int freq4 = freq * 4;  
+  freqdiv = freq / 1000000;
 
-if (freqdiv <= 25){
-  
-           si5351.set_freq(freq4*100ULL, SI5351_CLK1);
-   si5351.output_enable(SI5351_CLK1, 1);   //RX on
-}
+  if (freqdiv <= 25){
+    si5351.set_freq(freq4*100ULL, SI5351_CLK1);
+    si5351.output_enable(SI5351_CLK1, 1);   //RX on
+  }
 
-if (freqdiv > 25 && freqdiv < 30){
-            // Set CLK1 to output 112 MHz
-  si5351.set_ms_source(SI5351_CLK1, SI5351_PLLB);
-  si5351.set_freq_manual(freq4*100ULL, 70000000000ULL, SI5351_CLK1);
-                si5351.output_enable(SI5351_CLK1, 1);   //RX on
-}
+  if (freqdiv > 25 && freqdiv < 30){
+    // Set CLK1 to output 112 MHz
+    si5351.set_ms_source(SI5351_CLK1, SI5351_PLLB);
+    si5351.set_freq_manual(freq4*100ULL, 70000000000ULL, SI5351_CLK1);
+    si5351.output_enable(SI5351_CLK1, 1);   //RX on
+  }
   /*
   Serial.println(freq);
   Serial.println(freq4); 
     */
-    
-    TX_State = 0;
-    digitalWrite(RX,HIGH);
+
+  digitalWrite(RX,HIGH);
    
   FSKtx = 0;
     
@@ -308,8 +291,8 @@ if (freqdiv > 25 && freqdiv < 30){
 //********************************************************************************
 
 void Band_Select(){
-M = digitalRead(M_SW);
-B = digitalRead(B_SW);
+int M = digitalRead(M_SW);
+int B = digitalRead(B_SW);
 
 if ((B == LOW)&&(M == LOW)) {
    delay(100); 
@@ -351,21 +334,17 @@ if ((B == HIGH)&&(M == HIGH))
 //***************[ Band Switch Frequency and Mode Assign Function ]********************
 
 void SW_assign(){
+  Freq_assign(BAND1);
+  B1_FT8 = F_FT8;
+  B1_FT4 = F_FT4;
 
-Band = BAND1;
-    Freq_assign();
-       B1_FT8 = F_FT8;
-         B1_FT4 = F_FT4;
-
-Band = BAND2;
-     Freq_assign();
-         B2_FT8 = F_FT8;
-             B2_FT4 = F_FT4;
-
+  Freq_assign(BAND2);
+  B2_FT8 = F_FT8;
+    B2_FT4 = F_FT4;
 }
 
 //*********************[ Band dependent Frequency Assign Function ]********************
-void Freq_assign() {
+void Freq_assign(unsigned int Band) {
 
   switch (Band) {
    
